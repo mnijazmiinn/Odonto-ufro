@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Malla Interactiva de Odontología</title>
+  <style>
+    body {
+      background: #1a1a2e;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+      padding: 30px;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+    }
+    .card {
+      width: 200px;
+      height: 120px;
+      background: #ccc;
+      border-radius: 10px;
+      padding: 10px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.3);
+      cursor: not-allowed;
+      transition: transform 0.3s, background 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    .card.unlocked {
+      background: #6a11cb;
+      cursor: pointer;
+      color: white;
+    }
+    .card.completed {
+      background: #00c853;
+    }
+    .card.locked {
+      opacity: 0.4;
+    }
+    .card:hover.unlocked {
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+  <h1>Malla Interactiva de Odontología 🦷</h1>
+  <div class="container" id="cardContainer"></div>
+
+  <script>
+    // Definición de asignaturas y prerequisitos
+    const asignaturas = {
+      "Antropología": [],
+      "Unidad de Integración 1": [],
+      "Química General": [],
+      "Física Aplicada": [],
+      "Biología": [],
+      "Anatomía General": [],
+      "Salud Pública 1": [],
+      "Salud Pública 2": ["Salud Pública 1"],
+      "Anatomía Topográfica, Cabeza y Cuello": ["Anatomía General"],
+      "Histología": ["Biología"],
+      "Química Orgánica": ["Química General"],
+      "Unidad de Integración 2": ["Unidad de Integración 1"],
+      "Idioma Inglés": [],
+      "Sociedad y Desarrollo Comunitario": ["Antropología"],
+      "Salud Pública 3": ["Salud Pública 2"],
+      "Fisiología": ["Anatomía General", "Histología", "Biología", "Física Aplicada"],
+      "Embriología": [],
+      "Bioquímica": ["Química Orgánica"],
+      "Unidad de Integración 3": ["Unidad de Integración 2"],
+      "Semiología y enfermería básica": [],
+      "Clínica Básica 1": [],
+      "Salud Pública 4": ["Salud Pública 3"],
+      "Neuronatomía": ["Embriología", "Anatomía Topográfica, Cabeza y Cuello"],
+      "Fisiopatología": ["Fisiología"],
+      "Fisiología bucal": ["Fisiología"],
+      "Unidad de Integración 4": ["Unidad de Integración 3"],
+      "Semiología 1": ["Semiología y enfermería básica"],
+      "Clínica Básica 2": ["Clínica Básica 1"],
+      "Psicología": [],
+      "Unidad de Integración 5": ["Unidad de Integración 4"],
+      "Microbiología": ["Fisiología bucal"],
+      "Patología General": ["Fisiopatología"],
+      "Salud Pública 5": ["Salud Pública 4"],
+      "Semiología 2": ["Semiología 1"],
+      "Clínica Básica 3": ["Clínica Básica 2"],
+      "Psicología 2": ["Psicología"],
+      "Salud Pública 6": ["Salud Pública 5"],
+      "Anatomía Patológica": ["Patología General"],
+      "Farmacología": ["Microbiología", "Patología General"],
+      "Unidad de Integración 6": ["Unidad de Integración 5"],
+      "Radiología": ["Semiología 2"],
+      "Clínica Básica 4": ["Clínica Básica 3"],
+      "Electivo de Cultura Departamento Humano": [],
+      "Bioética": ["Salud Pública 6", "Anatomía Patológica", "Farmacología", "Unidad de Integración 6", "Radiología", "Clínica Básica 4", "Electivo de Cultura Departamento Humano"],
+      "Clínica Odontológica Integral Pediátrica 1": ["Salud Pública 6", "Anatomía Patológica", "Farmacología", "Unidad de Integración 6", "Radiología", "Clínica Básica 4", "Electivo de Cultura Departamento Humano"],
+      "Clínica Odontológica Integral Adulto 1": ["Salud Pública 6", "Anatomía Patológica", "Farmacología", "Unidad de Integración 6", "Radiología", "Clínica Básica 4", "Electivo de Cultura Departamento Humano"],
+      "Historia de la Cultura y Sociedad Chilena": ["Salud Pública 6", "Anatomía Patológica", "Farmacología", "Unidad de Integración 6", "Radiología", "Clínica Básica 4", "Electivo de Cultura Departamento Humano"],
+      "Salud Familiar": ["Bioética"],
+      "Ética, Moral y Lógica": [],
+      "Clínica Odontológica Integral Pediátrica 2": ["Clínica Odontológica Integral Pediátrica 1"],
+      "Clínica Odontológica Integral Adulto 2": ["Clínica Odontológica Integral Adulto 1"],
+      "Electivo de Formación Especializada": [],
+      "Planificaciones de Desarrollo": [],
+      "Políticas Públicas": ["Salud Familiar"],
+      "Proyecciones en Odontología": [],
+      "Práctica Profesional Controlada 1": ["Políticas Públicas", "Clínica Odontológica Integral Pediátrica 2", "Clínica Odontológica Integral Adulto 2", "Proyecciones en Odontología"],
+      "Práctica Profesional Controlada 2": ["Práctica Profesional Controlada 1"]
+    };
+
+    const estado = JSON.parse(localStorage.getItem("estadoAsignaturas")) || {};
+
+    function guardarEstado() {
+      localStorage.setItem("estadoAsignaturas", JSON.stringify(estado));
+    }
+
+    function marcarComoCompletada(nombre) {
+      estado[nombre] = true;
+      guardarEstado();
+      renderizarTarjetas();
+    }
+
+    function renderizarTarjetas() {
+      const contenedor = document.getElementById("cardContainer");
+      contenedor.innerHTML = "";
+      for (const nombre in asignaturas) {
+        const card = document.createElement("div");
+        card.id = nombre;
+        card.className = "card";
+        card.textContent = nombre;
+        if (estado[nombre]) {
+          card.classList.add("completed");
+        } else {
+          const prereqs = asignaturas[nombre];
+          const completados = prereqs.every(p => estado[p]);
+          if (completados || prereqs.length === 0) {
+            card.classList.add("unlocked");
+            card.onclick = () => marcarComoCompletada(nombre);
+          } else {
+            card.classList.add("locked");
+          }
+        }
+        contenedor.appendChild(card);
+      }
+    }
+
+    // Inicializa la interfaz
+    renderizarTarjetas();
+  </script>
+</body>
+</html>
